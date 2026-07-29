@@ -26,6 +26,10 @@ public class TagNode extends AbstractGroupBuyMarketSupport<MarketProductEntity, 
 
     @Override
     protected TrialBalanceEntity doApply(MarketProductEntity requestParameter, DefaultActivityStrategyFactory.DynamicContext dynamicContext) throws Exception {
+        log.info(
+                "拼团商品查询试算服务-TagNode进入 userId:{}",
+                requestParameter.getUserId()
+        );
         // 获取拼团活动配置
         GroupBuyActivityDiscountVO groupBuyActivityDiscountVO = dynamicContext.getGroupBuyActivityDiscountVO();
 
@@ -41,9 +45,33 @@ public class TagNode extends AbstractGroupBuyMarketSupport<MarketProductEntity, 
         }
 
         // 是否在人群范围内；visible、enable 如果值为 ture 则表示没有配置拼团限制，那么就直接保证为 true 即可
-        boolean isWithin = repository.isTagCrowdRange(tagId, requestParameter.getUserId());
+//        boolean isWithin = repository.isTagCrowdRange(tagId, requestParameter.getUserId());
+//        dynamicContext.setVisible(visible || isWithin);
+//        dynamicContext.setEnable(enable || isWithin);
+        boolean isWithin = repository.isTagCrowdRange(
+                tagId,
+                requestParameter.getUserId()
+        );
+
+        log.info(
+                "TagNode诊断 tagId:{} userId:{} baseVisible:{} baseEnable:{} isWithin:{}",
+                tagId,
+                requestParameter.getUserId(),
+                visible,
+                enable,
+                isWithin
+        );
+
         dynamicContext.setVisible(visible || isWithin);
         dynamicContext.setEnable(enable || isWithin);
+
+        log.info(
+                "TagNode诊断计算完成 userId:{} finalVisible:{} finalEnable:{}",
+                requestParameter.getUserId(),
+                visible || isWithin,
+                enable || isWithin
+        );
+
 
         return router(requestParameter, dynamicContext);
     }

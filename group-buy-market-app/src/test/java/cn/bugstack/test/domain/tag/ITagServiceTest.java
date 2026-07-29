@@ -45,4 +45,49 @@ public class ITagServiceTest {
         log.info("测试结果:{}", bitSet.isExists());
     }
 
+    @Test
+    public void test_activity_tag_bitmap() {
+        String activityTagId = "1";
+        String jobTagId = "RQ_KJHKL98UU78H66554GFDV";
+
+        long xiaofugeIndex =
+                redisService.getIndexFromUserId("xiaofuge");
+
+        long gudebaiIndex =
+                redisService.getIndexFromUserId("gudebai");
+
+        RBitSet activityBitSet =
+                redisService.getBitSet(activityTagId);
+
+        RBitSet jobBitSet =
+                redisService.getBitSet(jobTagId);
+
+        log.info(
+                "活动标签 key:{}，xiaofuge index:{}，result:{}",
+                activityTagId,
+                xiaofugeIndex,
+                activityBitSet.get(xiaofugeIndex)
+        );
+
+        log.info(
+                "活动标签 key:{}，gudebai index:{}，result:{}",
+                activityTagId,
+                gudebaiIndex,
+                activityBitSet.get(gudebaiIndex)
+        );
+
+        log.info(
+                "批次标签 key:{}，xiaofuge index:{}，result:{}",
+                jobTagId,
+                xiaofugeIndex,
+                jobBitSet.get(xiaofugeIndex)
+        );
+
+        log.info(
+                "批次标签 key:{}，gudebai index:{}，result:{}",
+                jobTagId,
+                gudebaiIndex,
+                jobBitSet.get(gudebaiIndex)
+        );
+    }
 }

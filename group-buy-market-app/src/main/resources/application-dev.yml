@@ -94,7 +94,7 @@ xfg:
     config:
       system: group-buy-market
       register:
-        host: 192.168.1.108
+        host: localhost
         port: 16379
 
 # 日志；logstash部署的服务器IP
