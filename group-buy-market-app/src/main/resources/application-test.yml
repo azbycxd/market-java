@@ -1,6 +1,12 @@
 server:
   port: 8091
 
+# Test-only identity adapter for the Agent facts API. It is additionally guarded by the active dev/test profile.
+agent:
+  facts:
+    dev-header-auth:
+      enabled: true
+
 # 线程池配置
 thread:
   pool:

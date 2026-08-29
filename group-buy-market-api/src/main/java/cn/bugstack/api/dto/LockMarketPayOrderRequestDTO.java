@@ -43,7 +43,6 @@ public class LockMarketPayOrderRequestDTO {
     }
 
     // 回调配置
-    @Data
     public static class NotifyConfigVO {
         /**
          * 回调方式；MQ、HTTP
@@ -57,6 +56,30 @@ public class LockMarketPayOrderRequestDTO {
          * 回调地址
          */
         private String notifyUrl;
+
+        public String getNotifyType() {
+            return notifyType;
+        }
+
+        public void setNotifyType(String notifyType) {
+            this.notifyType = notifyType;
+        }
+
+        public String getNotifyMQ() {
+            return notifyMQ;
+        }
+
+        public void setNotifyMQ(String notifyMQ) {
+            this.notifyMQ = notifyMQ;
+        }
+
+        public String getNotifyUrl() {
+            return notifyUrl;
+        }
+
+        public void setNotifyUrl(String notifyUrl) {
+            this.notifyUrl = notifyUrl;
+        }
     }
 
 }

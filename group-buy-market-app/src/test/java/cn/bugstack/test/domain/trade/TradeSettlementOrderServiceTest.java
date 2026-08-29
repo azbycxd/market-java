@@ -3,6 +3,7 @@ package cn.bugstack.test.domain.trade;
 import cn.bugstack.domain.trade.model.entity.TradePaySettlementEntity;
 import cn.bugstack.domain.trade.model.entity.TradePaySuccessEntity;
 import cn.bugstack.domain.trade.service.ITradeSettlementOrderService;
+import cn.bugstack.domain.trade.service.ITradeTaskService;
 import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -32,8 +34,8 @@ public class TradeSettlementOrderServiceTest {
         TradePaySuccessEntity tradePaySuccessEntity = new TradePaySuccessEntity();
         tradePaySuccessEntity.setSource("s01");
         tradePaySuccessEntity.setChannel("c01");
-        tradePaySuccessEntity.setUserId("xfg01");
-        tradePaySuccessEntity.setOutTradeNo("303596099292");
+        tradePaySuccessEntity.setUserId("xfg03");
+        tradePaySuccessEntity.setOutTradeNo("176768111441");
         tradePaySuccessEntity.setOutTradeTime(new Date());
         TradePaySettlementEntity tradePaySettlementEntity = tradeSettlementOrderService.settlementMarketPayOrder(tradePaySuccessEntity);
         log.info("请求参数:{}", JSON.toJSONString(tradePaySuccessEntity));
@@ -41,6 +43,17 @@ public class TradeSettlementOrderServiceTest {
 
         // 暂停，等待MQ消息。处理完后，手动关闭程序
         new CountDownLatch(1).await();
+    }
+
+    @Resource
+    private ITradeTaskService tradeTaskService;
+
+    @Test
+    public void test_execNotifyJob() throws Exception {
+        Map<String, Integer> result =
+                tradeTaskService.execNotifyJob("70798170");
+
+        log.info("通知重试结果:{}", JSON.toJSONString(result));
     }
 
 }

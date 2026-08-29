@@ -120,15 +120,40 @@
             status = 1
     </update>
 
+<!--    <select id="queryTimeoutUnpaidOrderList" resultMap="dataMap">-->
+<!--        select user_id, team_id, order_id, activity_id, start_time,-->
+<!--               end_time, goods_id, source, channel, original_price, deduction_price, -->
+<!--               pay_price, status, out_trade_no, out_trade_time, source, channel-->
+<!--        from group_buy_order_list-->
+<!--        where status = 0 -->
+<!--          and out_trade_time is null -->
+<!--          and now() > end_time-->
+<!--        limit 10-->
+<!--    </select>-->
     <select id="queryTimeoutUnpaidOrderList" resultMap="dataMap">
-        select user_id, team_id, order_id, activity_id, start_time,
-               end_time, goods_id, source, channel, original_price, deduction_price, 
-               pay_price, status, out_trade_no, out_trade_time, source, channel
-        from group_buy_order_list
-        where status = 0 
-          and out_trade_time is null 
-          and now() > end_time
-        limit 10
+        select
+            ol.user_id,
+            ol.team_id,
+            ol.order_id,
+            ol.activity_id,
+            ol.start_time,
+            ol.end_time,
+            ol.goods_id,
+            ol.source,
+            ol.channel,
+            ol.original_price,
+            ol.deduction_price,
+            ol.pay_price,
+            ol.status,
+            ol.out_trade_no,
+            ol.out_trade_time
+        from group_buy_order_list ol
+                 inner join group_buy_order gbo
+                            on ol.team_id = gbo.team_id
+        where ol.status = 0
+          and ol.out_trade_time is null
+          and now() > gbo.valid_end_time
+            limit 10
     </select>
 
 </mapper>

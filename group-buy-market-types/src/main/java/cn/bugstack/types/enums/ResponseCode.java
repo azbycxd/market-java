@@ -17,6 +17,11 @@ public enum ResponseCode {
     HTTP_EXCEPTION("0005", "HTTP接口调用异常"),
     RATE_LIMITER("0006", "接口限流"),
 
+    AUTH_REQUIRED("AUTH_REQUIRED", "认证信息缺失"),
+    ORDER_NOT_FOUND_OR_NOT_AUTHORIZED("ORDER_NOT_FOUND_OR_NOT_AUTHORIZED", "订单不存在或无权访问"),
+    INVALID_ARGUMENT("INVALID_ARGUMENT", "请求参数无效"),
+    INTERNAL_SERVICE_ERROR("INTERNAL_SERVICE_ERROR", "内部服务异常"),
+
     E0001("E0001", "不存在对应的折扣计算服务"),
     E0002("E0002", "无拼团营销配置"),
     E0003("E0003", "拼团活动降级拦截"),
