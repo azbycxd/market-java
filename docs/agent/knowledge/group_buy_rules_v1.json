@@ -3,7 +3,7 @@
   "version": "v1",
   "generated_from": "group-buy-market-jiusi",
   "review_date": "2026-08-30",
-  "entry_count": 16,
+  "entry_count": 15,
   "entries": [
     {
       "knowledge_id": "group_buy_basic_flow",
@@ -303,25 +303,6 @@
       "version": "v1",
       "tags": ["CLOSE", "退单", "退款", "资金到账", "状态"],
       "requires_realtime_facts": true
-    },
-    {
-      "knowledge_id": "agent_facts_capability_boundary",
-      "title": "当前 Agent 的业务查询能力边界",
-      "category": "capability_boundary",
-      "content": "当前 Agent 的实时业务能力主要是查询订单、团队、活动相关事实，以及查询活动下可加入的候选团队。它不是退款执行器、支付执行器、改单系统或数据库操作入口。",
-      "source_type": "api_contract",
-      "source_level": "LEVEL_2",
-      "source_files": [
-        "group-buy-market-trigger/src/main/java/cn/bugstack/trigger/http/AgentFactsController.java",
-        "group-buy-market-trigger/src/main/java/cn/bugstack/trigger/http/AgentJoinableTeamFactsController.java"
-      ],
-      "source_symbols": [
-        "AgentFactsController.getOrderFacts",
-        "AgentJoinableTeamFactsController.getJoinableTeamFacts"
-      ],
-      "version": "v1",
-      "tags": ["Agent", "查询能力", "只读", "订单事实", "团队事实"],
-      "requires_realtime_facts": false
     }
   ]
 }

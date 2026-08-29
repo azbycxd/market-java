@@ -22,6 +22,8 @@
 - **Rule**：资格、容量、库存、标签、价格、锁单和退单策略由 Java Rule/Service/Strategy 最终裁决与执行。
 - **检索知识**：只解释一般规则和状态含义。检索结果不得替代 Facts 或 Java 的确定性业务判断。
 
+Agent 当前可调用能力不属于规则知识目录；运行时能力必须以 Agent ToolRegistry / `available_tools` 为准，不得通过本 Catalog 判断当前 Agent 注册了哪些 Tool。
+
 ## 安全边界
 
 目录不得包含用户标识、订单号、手机号、地址、Header、Token、密码、API Key、连接信息、Redis 键、真实订单数据、通知参数、SQL、Mapper 或基础设施配置。不要把整个仓库或原始源码切块入库。
