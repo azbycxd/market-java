@@ -7,6 +7,7 @@ import cn.bugstack.infrastructure.dao.*;
 import cn.bugstack.infrastructure.dao.po.*;
 import cn.bugstack.infrastructure.dcc.DCCService;
 import cn.bugstack.infrastructure.redis.IRedisService;
+import cn.bugstack.types.enums.ActivityStatusEnumVO;
 import org.redisson.api.RBitSet;
 import org.springframework.stereotype.Repository;
 
@@ -79,6 +80,30 @@ public class ActivityRepository extends AbstractRepository implements IActivityR
     }
 
     @Override
+    public GroupBuyActivityFactsSourceVO queryGroupBuyActivityFactsSourceByActivityId(Long activityId) {
+        GroupBuyActivity groupBuyActivity = groupBuyActivityDao.queryGroupBuyActivityByActivityId(activityId);
+        if (null == groupBuyActivity) return null;
+
+        return GroupBuyActivityFactsSourceVO.builder()
+                .activityId(groupBuyActivity.getActivityId())
+                .status(ActivityStatusEnumVO.valueOf(groupBuyActivity.getStatus()))
+                .startTime(groupBuyActivity.getStartTime())
+                .endTime(groupBuyActivity.getEndTime())
+                .tagId(groupBuyActivity.getTagId())
+                .tagScope(groupBuyActivity.getTagScope())
+                .userTakeLimit(groupBuyActivity.getTakeLimitCount())
+                .build();
+    }
+
+    @Override
+    public Integer queryOrderCountByActivityId(Long activityId, String userId) {
+        GroupBuyOrderList groupBuyOrderListReq = new GroupBuyOrderList();
+        groupBuyOrderListReq.setActivityId(activityId);
+        groupBuyOrderListReq.setUserId(userId);
+        return groupBuyOrderListDao.queryOrderCountByActivityId(groupBuyOrderListReq);
+    }
+
+    @Override
     public SkuVO querySkuByGoodsId(String goodsId) {
         Sku sku = skuDao.querySkuByGoodsId(goodsId);
         if (null == sku) return null;
@@ -113,6 +138,11 @@ public class ActivityRepository extends AbstractRepository implements IActivityR
         if (!bitSet.isExists()) return true;
         // 判断用户是否存在人群中
         return bitSet.get(redisService.getIndexFromUserId(userId));
+    }
+
+    @Override
+    public boolean isTagCrowdDataAvailable(String tagId) {
+        return redisService.getBitSet(tagId).isExists();
     }
 
     @Override
