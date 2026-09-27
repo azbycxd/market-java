@@ -83,6 +83,7 @@ public class TradeRepository implements ITradeRepository {
                 .deductionPrice(groupBuyOrderListRes.getDeductionPrice())
                 .payPrice(groupBuyOrderListRes.getPayPrice())
                 .tradeOrderStatusEnumVO(TradeOrderStatusEnumVO.valueOf(groupBuyOrderListRes.getStatus()))
+                .updateTime(groupBuyOrderListRes.getUpdateTime())
                 .build();
     }
 

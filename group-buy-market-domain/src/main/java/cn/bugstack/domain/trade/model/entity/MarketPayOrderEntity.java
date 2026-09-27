@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @author Fuzhengwei bugstack.cn @小傅哥
@@ -31,5 +32,7 @@ public class MarketPayOrderEntity {
     private BigDecimal payPrice;
     /** 交易订单状态枚举 */
     private TradeOrderStatusEnumVO tradeOrderStatusEnumVO;
+    /** 订单最近更新时间，供只读预检作为后续版本基准 */
+    private Date updateTime;
 
 }
