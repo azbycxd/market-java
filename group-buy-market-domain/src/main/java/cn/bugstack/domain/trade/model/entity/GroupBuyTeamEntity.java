@@ -37,6 +37,8 @@ public class GroupBuyTeamEntity {
     private Date validStartTime;
     /** 拼团结束时间 - 拼团有效时长 */
     private Date validEndTime;
+    /** 团队最近更新时间，供只读预检作为后续版本基准 */
+    private Date updateTime;
     /** 回调配置 */
     private NotifyConfigVO notifyConfigVO;
 

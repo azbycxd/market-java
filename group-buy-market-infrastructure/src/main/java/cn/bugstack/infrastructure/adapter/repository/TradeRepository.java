@@ -223,6 +223,7 @@ public class TradeRepository implements ITradeRepository {
                 .status(GroupBuyOrderEnumVO.valueOf(groupBuyOrder.getStatus()))
                 .validStartTime(groupBuyOrder.getValidStartTime())
                 .validEndTime(groupBuyOrder.getValidEndTime())
+                .updateTime(groupBuyOrder.getUpdateTime())
                 .notifyConfigVO(NotifyConfigVO.builder()
                         .notifyType(NotifyTypeEnumVO.valueOf(groupBuyOrder.getNotifyType()))
                         .notifyUrl(groupBuyOrder.getNotifyUrl())

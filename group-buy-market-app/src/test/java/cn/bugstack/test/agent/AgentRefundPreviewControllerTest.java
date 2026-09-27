@@ -43,6 +43,7 @@ public class AgentRefundPreviewControllerTest {
                         .refundProposalAllowed(true)
                         .requiresManualReview(true)
                         .orderUpdateTime(new Date(1767225600000L))
+                        .teamUpdateTime(new Date(1767225660000L))
                         .build());
 
         mockMvc.perform(post("/api/v1/agent/order/refund/preview")
@@ -55,7 +56,9 @@ public class AgentRefundPreviewControllerTest {
                 .andExpect(jsonPath("$.data.teamStatus").value("COMPLETE"))
                 .andExpect(jsonPath("$.data.refundType").value("PAID_FORMED"))
                 .andExpect(jsonPath("$.data.refundProposalAllowed").value(true))
-                .andExpect(jsonPath("$.data.requiresManualReview").value(true));
+                .andExpect(jsonPath("$.data.requiresManualReview").value(true))
+                .andExpect(jsonPath("$.data.orderUpdateTime").isNotEmpty())
+                .andExpect(jsonPath("$.data.teamUpdateTime").isNotEmpty());
 
         verify(refundPreviewService).getRefundPreview("user-1", "trade-1");
     }

@@ -22,5 +22,6 @@ public class RefundPreviewVO {
     private Boolean refundProposalAllowed;
     private Boolean requiresManualReview;
     private Date orderUpdateTime;
+    private Date teamUpdateTime;
 
 }

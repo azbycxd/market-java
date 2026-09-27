@@ -32,9 +32,10 @@ public class RefundPreviewServiceTest {
 
     @Test
     public void shouldPreviewUnpaidOrderWithoutAnyWrite() {
-        Date updateTime = new Date(1767225600000L);
-        stubOwnedOrder(TradeOrderStatusEnumVO.CREATE, updateTime);
-        stubTeam(GroupBuyOrderEnumVO.PROGRESS);
+        Date orderUpdateTime = new Date(1767225600000L);
+        Date teamUpdateTime = new Date(1767225660000L);
+        stubOwnedOrder(TradeOrderStatusEnumVO.CREATE, orderUpdateTime);
+        stubTeam(GroupBuyOrderEnumVO.PROGRESS, teamUpdateTime);
 
         RefundPreviewVO preview = service.getRefundPreview("user-1", "trade-1");
 
@@ -43,14 +44,16 @@ public class RefundPreviewServiceTest {
         assertEquals("UNPAID", preview.getRefundType());
         assertTrue(preview.getRefundProposalAllowed());
         assertFalse(preview.getRequiresManualReview());
-        assertEquals(updateTime, preview.getOrderUpdateTime());
+        assertEquals(orderUpdateTime, preview.getOrderUpdateTime());
+        assertEquals(teamUpdateTime, preview.getTeamUpdateTime());
+        assertFalse(preview.getOrderUpdateTime().equals(preview.getTeamUpdateTime()));
         verifyReadOnlyLookups();
     }
 
     @Test
     public void shouldPreviewPaidUnformedOrderWithoutAnyWrite() {
         stubOwnedOrder(TradeOrderStatusEnumVO.COMPLETE, new Date());
-        stubTeam(GroupBuyOrderEnumVO.PROGRESS);
+        stubTeam(GroupBuyOrderEnumVO.PROGRESS, new Date());
 
         RefundPreviewVO preview = service.getRefundPreview("user-1", "trade-1");
 
@@ -63,7 +66,7 @@ public class RefundPreviewServiceTest {
     @Test
     public void shouldRequireManualReviewForPaidFormedOrder() {
         stubOwnedOrder(TradeOrderStatusEnumVO.COMPLETE, new Date());
-        stubTeam(GroupBuyOrderEnumVO.COMPLETE);
+        stubTeam(GroupBuyOrderEnumVO.COMPLETE, new Date());
 
         RefundPreviewVO preview = service.getRefundPreview("user-1", "trade-1");
 
@@ -76,7 +79,7 @@ public class RefundPreviewServiceTest {
     @Test
     public void shouldNotAllowClosedOrderToBeRefunded() {
         stubOwnedOrder(TradeOrderStatusEnumVO.CLOSE, new Date());
-        stubTeam(GroupBuyOrderEnumVO.PROGRESS);
+        stubTeam(GroupBuyOrderEnumVO.PROGRESS, new Date());
 
         RefundPreviewVO preview = service.getRefundPreview("user-1", "trade-1");
 
@@ -105,9 +108,9 @@ public class RefundPreviewServiceTest {
                         .build());
     }
 
-    private void stubTeam(GroupBuyOrderEnumVO status) {
+    private void stubTeam(GroupBuyOrderEnumVO status, Date updateTime) {
         when(repository.queryGroupBuyTeamByTeamId("team-1"))
-                .thenReturn(GroupBuyTeamEntity.builder().teamId("team-1").status(status).build());
+                .thenReturn(GroupBuyTeamEntity.builder().teamId("team-1").status(status).updateTime(updateTime).build());
     }
 
     private void verifyReadOnlyLookups() {

@@ -77,6 +77,7 @@ public class RefundPreviewService implements IRefundPreviewService {
                 .refundProposalAllowed(refundProposalAllowed)
                 .requiresManualReview(requiresManualReview)
                 .orderUpdateTime(order.getUpdateTime())
+                .teamUpdateTime(team.getUpdateTime())
                 .build();
     }
 

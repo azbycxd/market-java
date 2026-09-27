@@ -28,5 +28,7 @@ public class AgentRefundPreviewResponseDTO implements Serializable {
     private Boolean requiresManualReview;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Shanghai")
     private Date orderUpdateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Shanghai")
+    private Date teamUpdateTime;
 
 }

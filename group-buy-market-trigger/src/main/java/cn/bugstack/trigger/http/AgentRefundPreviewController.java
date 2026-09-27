@@ -64,6 +64,7 @@ public class AgentRefundPreviewController {
                             .refundProposalAllowed(preview.getRefundProposalAllowed())
                             .requiresManualReview(preview.getRequiresManualReview())
                             .orderUpdateTime(preview.getOrderUpdateTime())
+                            .teamUpdateTime(preview.getTeamUpdateTime())
                             .build())
                     .build();
         } catch (Exception e) {
