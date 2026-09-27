@@ -18,7 +18,11 @@ import java.util.Optional;
 @Component
 public class DevHeaderAuthenticatedUserProvider implements AuthenticatedUserProvider {
 
-    public static final String HEADER_NAME = "X-Dev-Authenticated-User-Id";
+    /**
+     * Trusted user identity for the Agent boundary. It is accepted only with the explicit dev/test
+     * opt-in below; production still requires a production authentication adapter.
+     */
+    public static final String HEADER_NAME = "X-Authenticated-User-Id";
     private static final String ENABLED_PROPERTY = "agent.facts.dev-header-auth.enabled";
 
     private final Environment environment;

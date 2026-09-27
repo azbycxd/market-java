@@ -41,6 +41,11 @@ public class DevHeaderAuthenticatedUserProviderTest {
     }
 
     @Test
+    public void shouldUseOnlyTheAgentTrustedIdentityHeaderName() {
+        assertEquals("X-Authenticated-User-Id", DevHeaderAuthenticatedUserProvider.HEADER_NAME);
+    }
+
+    @Test
     public void requestDtoDoesNotContainUserIdentity() {
         for (Field field : AgentOrderFactsRequestDTO.class.getDeclaredFields()) {
             assertFalse("userId must stay outside the request DTO", "userId".equals(field.getName()));
