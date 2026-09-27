@@ -34,6 +34,9 @@ public class AgentInternalJwtAuthenticationFilter extends OncePerRequestFilter {
     static final String ISSUER_ENV = "AGENT_INTERNAL_JWT_ISSUER";
     static final String AUDIENCE_ENV = "AGENT_INTERNAL_JWT_AUDIENCE";
 
+    /** Request-scoped identity established only after a fully verified internal JWT. */
+    public static final String AUTHENTICATED_USER_ID_ATTRIBUTE = "authenticatedUserId";
+
     private static final String AGENT_API_PREFIX = "/api/v1/agent/";
     private static final String BEARER_PREFIX = "Bearer ";
     private final Environment environment;
@@ -53,20 +56,22 @@ public class AgentInternalJwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.isBlank(authorization) || !authorization.startsWith(BEARER_PREFIX)
-                || !isValid(authorization.substring(BEARER_PREFIX.length()).trim())) {
+        String authenticatedUserId = StringUtils.isBlank(authorization) || !authorization.startsWith(BEARER_PREFIX)
+                ? null : authenticate(authorization.substring(BEARER_PREFIX.length()).trim());
+        if (StringUtils.isBlank(authenticatedUserId)) {
             writeUnauthorized(response);
             return;
         }
+        request.setAttribute(AUTHENTICATED_USER_ID_ATTRIBUTE, authenticatedUserId);
         filterChain.doFilter(request, response);
     }
 
-    private boolean isValid(String token) {
+    private String authenticate(String token) {
         String secret = environment.getProperty(SECRET_ENV);
         String issuer = environment.getProperty(ISSUER_ENV);
         String audience = environment.getProperty(AUDIENCE_ENV);
         if (StringUtils.isAnyBlank(token, secret, issuer, audience)) {
-            return false;
+            return null;
         }
 
         try {
@@ -76,12 +81,16 @@ public class AgentInternalJwtAuthenticationFilter extends OncePerRequestFilter {
                     .setSigningKey(secret.getBytes(StandardCharsets.UTF_8))
                     .parseClaimsJws(token);
             if (!SignatureAlgorithm.HS256.getValue().equals(parsed.getHeader().getAlgorithm())) {
-                return false;
+                return null;
             }
             Date expiration = parsed.getBody().getExpiration();
-            return null != expiration && expiration.after(new Date());
+            if (null == expiration || !expiration.after(new Date())) {
+                return null;
+            }
+            String subject = parsed.getBody().getSubject();
+            return StringUtils.isBlank(subject) ? null : subject;
         } catch (JwtException | IllegalArgumentException ignored) {
-            return false;
+            return null;
         }
     }
 
