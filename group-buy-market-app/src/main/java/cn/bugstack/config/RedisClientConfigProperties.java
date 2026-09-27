@@ -16,6 +16,8 @@ public class RedisClientConfigProperties {
     private String host;
     /** 端口 */
     private int port;
+    /** Redis logical database; agent-dev uses its own database number to isolate state. */
+    private int database = 0;
     /** 账密 */
     private String password;
     /** 设置连接池的大小，默认为64 */

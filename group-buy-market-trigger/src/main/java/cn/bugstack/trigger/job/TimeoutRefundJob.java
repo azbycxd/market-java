@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(name = "group-buy-market.jobs.timeout-refund.enabled", havingValue = "true", matchIfMissing = true)
 public class TimeoutRefundJob {
 
     @Resource

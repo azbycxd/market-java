@@ -1,0 +1,8 @@
+services:
+  agent-dev-redis:
+    image: redis:6.2
+    container_name: group-buy-market-agent-dev-redis
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    ports:
+      - "16380:6379"
