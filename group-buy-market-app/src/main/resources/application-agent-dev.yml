@@ -40,3 +40,8 @@ group-buy-market:
       enabled: false
     group-buy-notify:
       enabled: false
+
+agent:
+  refund:
+    # Test-only deterministic concurrency window; disabled unless explicitly set for agent-dev.
+    test-execution-delay-ms: ${AGENT_REFUND_TEST_EXECUTION_DELAY_MS:0}

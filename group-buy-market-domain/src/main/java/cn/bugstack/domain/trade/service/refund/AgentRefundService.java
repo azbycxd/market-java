@@ -10,9 +10,14 @@ import cn.bugstack.domain.trade.model.valobj.RefundPreviewVO;
 import cn.bugstack.domain.trade.service.IAgentRefundService;
 import cn.bugstack.domain.trade.service.IRefundPreviewService;
 import cn.bugstack.domain.trade.service.ITradeRefundOrderService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -20,6 +25,7 @@ import java.util.TimeZone;
  * Agent-facing refund command coordinator. It owns only idempotency and optimistic precheck;
  * the established refund service remains the sole executor of refund business transitions.
  */
+@Slf4j
 @Service
 public class AgentRefundService implements IAgentRefundService {
     private static final String PROCESSING = "PROCESSING";
@@ -29,6 +35,13 @@ public class AgentRefundService implements IAgentRefundService {
     private final IAgentRefundRequestRepository requestRepository;
     private final IRefundPreviewService refundPreviewService;
     private final ITradeRefundOrderService tradeRefundOrderService;
+
+    /** Agent-dev concurrency test hook. It is disabled unless both profile and property opt in. */
+    @Value("${agent.refund.test-execution-delay-ms:0}")
+    private long testExecutionDelayMs;
+
+    @Resource
+    private Environment environment;
 
     public AgentRefundService(IAgentRefundRequestRepository requestRepository,
                               IRefundPreviewService refundPreviewService,
@@ -67,6 +80,7 @@ public class AgentRefundService implements IAgentRefundService {
         }
 
         try {
+            delayAfterValidatedPreviewForAgentDev(idempotencyKey, outTradeNo);
             TradeRefundBehaviorEntity behavior = tradeRefundOrderService.refundOrder(TradeRefundCommandEntity.builder()
                     .userId(authenticatedUserId).outTradeNo(outTradeNo)
                     .build());
@@ -76,9 +90,28 @@ public class AgentRefundService implements IAgentRefundService {
                 return complete(idempotencyKey, FAILED, "VERSION_CHANGED", false);
             }
             return complete(idempotencyKey, SUCCEEDED, "REFUND_SUCCEEDED", true);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return complete(idempotencyKey, FAILED, "REFUND_EXECUTION_FAILED", false);
         } catch (Exception e) {
             return complete(idempotencyKey, FAILED, "REFUND_EXECUTION_FAILED", false);
         }
+    }
+
+    private void delayAfterValidatedPreviewForAgentDev(String idempotencyKey, String outTradeNo)
+            throws InterruptedException {
+        if (testExecutionDelayMs <= 0) {
+            return;
+        }
+        boolean agentDev = null != environment
+                && Arrays.asList(environment.getActiveProfiles()).contains("agent-dev");
+        if (!agentDev) {
+            log.warn("Ignoring Agent refund test delay outside agent-dev profile");
+            return;
+        }
+        log.info("Agent refund concurrency barrier reached after preview validation idempotencyKey:{} outTradeNo:{} delayMs:{}",
+                idempotencyKey, outTradeNo, testExecutionDelayMs);
+        Thread.sleep(testExecutionDelayMs);
     }
 
     private AgentRefundResultVO replayOrReject(AgentRefundRequestEntity incoming) {
