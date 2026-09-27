@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IAgentRefundRequestDao">
+    <resultMap id="dataMap" type="cn.bugstack.infrastructure.dao.po.AgentRefundRequest">
+        <id column="idempotency_key" property="idempotencyKey"/>
+        <result column="user_id" property="userId"/><result column="out_trade_no" property="outTradeNo"/>
+        <result column="expected_version" property="expectedVersion"/><result column="expected_refund_type" property="expectedRefundType"/>
+        <result column="status" property="status"/><result column="result_code" property="resultCode"/>
+        <result column="result_json" property="resultJson"/><result column="created_at" property="createdAt"/><result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.AgentRefundRequest">
+        insert into agent_refund_request(idempotency_key,user_id,out_trade_no,expected_version,expected_refund_type,status,created_at,updated_at)
+        values(#{idempotencyKey},#{userId},#{outTradeNo},#{expectedVersion},#{expectedRefundType},#{status},now(),now())
+    </insert>
+    <select id="queryByIdempotencyKey" resultMap="dataMap">
+        select idempotency_key,user_id,out_trade_no,expected_version,expected_refund_type,status,result_code,result_json,created_at,updated_at
+        from agent_refund_request where idempotency_key=#{idempotencyKey}
+    </select>
+    <update id="updateFinalResult">
+        update agent_refund_request set status=#{status},result_code=#{resultCode},result_json=#{resultJson},updated_at=now()
+        where idempotency_key=#{idempotencyKey} and status='PROCESSING'
+    </update>
+</mapper>
