@@ -1,5 +1,5 @@
--- Repeatable demo seed. IDs and state combinations intentionally reuse scripts/agent-dev/c3-seed.sql.
--- Demo users are represented by group_buy_order_list.user_id; this project has no separate user table.
+-- Repeatable single-user interview demo seed. State combinations reuse scripts/agent-dev/c3-seed.sql.
+-- demo_user is represented by group_buy_order_list.user_id; this project has no separate user table.
 
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE `agent_refund_request`;
@@ -47,7 +47,7 @@ VALUES
 INSERT INTO `group_buy_order_list`
 (`user_id`, `team_id`, `order_id`, `activity_id`, `start_time`, `end_time`, `goods_id`, `source`, `channel`, `original_price`, `deduction_price`, `pay_price`, `status`, `out_trade_no`, `out_trade_time`, `biz_id`, `create_time`, `update_time`)
 VALUES
-('agent_c3_unpaid', '91000001', '940000000001', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 0, '930000000001', NULL, '900001_agent_c3_unpaid_1', '2026-01-01 00:00:01', '2026-01-01 00:01:01'),
-('agent_c3_paid_unformed', '91000002', '940000000002', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 1, '930000000002', '2026-01-01 00:02:02', '900001_agent_c3_paid_unformed_1', '2026-01-01 00:00:02', '2026-01-01 00:01:02'),
-('agent_c3_paid_formed', '91000003', '940000000003', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 1, '930000000003', '2026-01-01 00:02:03', '900001_agent_c3_paid_formed_1', '2026-01-01 00:00:03', '2026-01-01 00:01:03'),
-('agent_c3_closed', '91000004', '940000000004', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 2, '930000000004', '2026-01-01 00:02:04', '900001_agent_c3_closed_1', '2026-01-01 00:00:04', '2026-01-01 00:01:04');
+('demo_user', '91000001', '940000000001', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 0, '930000000001', NULL, '900001_demo_user_1', '2026-01-01 00:00:01', '2026-01-01 00:01:01'),
+('demo_user', '91000002', '940000000002', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 1, '930000000002', '2026-01-01 00:02:02', '900001_demo_user_2', '2026-01-01 00:00:02', '2026-01-01 00:01:02'),
+('demo_user', '91000003', '940000000003', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 1, '930000000003', '2026-01-01 00:02:03', '900001_demo_user_3', '2026-01-01 00:00:03', '2026-01-01 00:01:03'),
+('demo_user', '91000004', '940000000004', 900001, '2026-01-01 00:00:00', '2030-01-01 00:00:00', 'C3_REFUND_01', 's01', 'c01', 100.00, 20.00, 80.00, 2, '930000000004', '2026-01-01 00:02:04', '900001_demo_user_4', '2026-01-01 00:00:04', '2026-01-01 00:01:04');

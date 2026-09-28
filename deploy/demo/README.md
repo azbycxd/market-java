@@ -50,9 +50,20 @@ docker compose --env-file deploy/demo/.env -f deploy/demo/docker-compose.yml exe
 
 | Refund scenario | userId / JWT sub | outTradeNo | teamId | activityId |
 | --- | --- | --- | --- | ---: |
-| UNPAID | `agent_c3_unpaid` | `930000000001` | `91000001` | 900001 |
-| PAID_UNFORMED | `agent_c3_paid_unformed` | `930000000002` | `91000002` | 900001 |
-| PAID_FORMED | `agent_c3_paid_formed` | `930000000003` | `91000003` | 900001 |
-| CLOSED | `agent_c3_closed` | `930000000004` | `91000004` | 900001 |
+| UNPAID | `demo_user` | `930000000001` | `91000001` | 900001 |
+| PAID_UNFORMED | `demo_user` | `930000000002` | `91000002` | 900001 |
+| PAID_FORMED | `demo_user` | `930000000003` | `91000003` | 900001 |
+| CLOSED | `demo_user` | `930000000004` | `91000004` | 900001 |
 
-These identities and state combinations reuse the existing agent-dev C3 seed. There is no separate user table in this project; the demo identities are the `user_id` values in `group_buy_order_list`.
+The state combinations reuse the existing agent-dev C3 seed, but all four orders belong to the fixed interview identity `demo_user`. There is no separate user table in this project; this identity is the `user_id` value in `group_buy_order_list` and the internal JWT `sub` used for Agent API calls.
+
+## Reset before an interview
+
+From the repository root, remove only the isolated demo containers and volume, then start them again. MySQL runs `deploy/demo/init/` against the new empty volume and restores the four initial orders; `agent_refund_request` is empty again.
+
+```bash
+docker compose --env-file deploy/demo/.env -f deploy/demo/docker-compose.yml down -v
+docker compose --env-file deploy/demo/.env -f deploy/demo/docker-compose.yml up -d
+```
+
+This reset does not touch the normal development database or any non-demo Docker volume.
