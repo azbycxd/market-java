@@ -23,6 +23,8 @@ public enum ResponseCode {
     INVALID_ARGUMENT("INVALID_ARGUMENT", "请求参数无效"),
     INTERNAL_SERVICE_ERROR("INTERNAL_SERVICE_ERROR", "内部服务异常"),
     REFUND_RESULT_NOT_FOUND("NOT_FOUND", "退款结果不存在"),
+    DEMO_RESET_FORBIDDEN("DEMO_RESET_FORBIDDEN", "仅固定 Demo 用户可以执行数据恢复"),
+    DEMO_RESET_BLOCKED("DEMO_RESET_BLOCKED", "存在正在执行的退款，Demo 数据未恢复"),
 
     E0001("E0001", "不存在对应的折扣计算服务"),
     E0002("E0002", "无拼团营销配置"),

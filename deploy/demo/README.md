@@ -67,3 +67,37 @@ docker compose --env-file deploy/demo/.env -f deploy/demo/docker-compose.yml up 
 ```
 
 This reset does not touch the normal development database or any non-demo Docker volume.
+
+## Online reset API
+
+For a running public interview demo, the Java service also exposes a controlled reset endpoint:
+
+```text
+POST /api/v1/agent/demo/reset
+Authorization: Bearer <internal HS256 JWT with sub=demo_user>
+Content-Type: application/json
+
+{}
+```
+
+Successful response:
+
+```json
+{
+  "code": "0000",
+  "info": "成功",
+  "data": {
+    "reset": true,
+    "orderCount": 4,
+    "teamCount": 4,
+    "redisKeysDeleted": 0,
+    "redisResetStrategy": "TARGETED_DEMO_KEYS"
+  }
+}
+```
+
+The controller and service are both registered only under the `demo` Spring profile. The existing internal JWT filter protects the route, and only the verified JWT subject `demo_user` is accepted. Request bodies cannot specify a user, and headers or query parameters cannot override the JWT subject.
+
+Before changing any data, the reset transaction locks and checks `demo_user` refund requests. A `PROCESSING` request returns `DEMO_RESET_BLOCKED` without changing MySQL or Redis. Terminal refund records may be removed. MySQL restores the four fixed orders and teams and clears their refund and notification records in one transaction.
+
+Redis uses targeted cleanup rather than `FLUSHDB`. The dedicated demo Redis also contains DCC configuration, so reset deletes only activity `900001` cache entries, fixed-team stock/recovery keys, fixed-order refund locks, and matching notification locks.
