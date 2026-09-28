@@ -1,0 +1,117 @@
+server:
+  port: ${SERVER_PORT:8091}
+  tomcat:
+    mbeanregistry:
+      enabled: true
+    max-connections: ${DEMO_TOMCAT_MAX_CONNECTIONS:20}
+    threads:
+      max: ${DEMO_TOMCAT_MAX_THREADS:20}
+      min-spare: ${DEMO_TOMCAT_MIN_SPARE_THREADS:10}
+    accept-count: ${DEMO_TOMCAT_ACCEPT_COUNT:10}
+
+thread:
+  pool:
+    executor:
+      config:
+        core-pool-size: ${DEMO_EXECUTOR_CORE_POOL_SIZE:20}
+        max-pool-size: ${DEMO_EXECUTOR_MAX_POOL_SIZE:50}
+        keep-alive-time: ${DEMO_EXECUTOR_KEEP_ALIVE_TIME:5000}
+        block-queue-size: ${DEMO_EXECUTOR_QUEUE_SIZE:5000}
+        policy: ${DEMO_EXECUTOR_REJECTION_POLICY:CallerRunsPolicy}
+
+spring:
+  datasource:
+    username: ${DEMO_MYSQL_USERNAME}
+    password: ${DEMO_MYSQL_PASSWORD}
+    url: ${DEMO_MYSQL_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      pool-name: ${DEMO_MYSQL_POOL_NAME:Demo_HikariCP}
+      minimum-idle: ${DEMO_MYSQL_MIN_IDLE:2}
+      idle-timeout: ${DEMO_MYSQL_IDLE_TIMEOUT:180000}
+      maximum-pool-size: ${DEMO_MYSQL_MAX_POOL_SIZE:10}
+      auto-commit: true
+      max-lifetime: ${DEMO_MYSQL_MAX_LIFETIME:1800000}
+      connection-timeout: ${DEMO_MYSQL_CONNECTION_TIMEOUT:30000}
+      connection-test-query: SELECT 1
+  rabbitmq:
+    addresses: ${DEMO_RABBITMQ_HOST}
+    port: ${DEMO_RABBITMQ_PORT:5672}
+    username: ${DEMO_RABBITMQ_USERNAME}
+    password: ${DEMO_RABBITMQ_PASSWORD}
+    virtual-host: ${DEMO_RABBITMQ_VHOST}
+    listener:
+      simple:
+        prefetch: ${DEMO_RABBITMQ_PREFETCH:1}
+    template:
+      delivery-mode: persistent
+    config:
+      producer:
+        exchange: ${DEMO_RABBITMQ_EXCHANGE}
+        topic_team_success:
+          routing_key: ${DEMO_RABBITMQ_TEAM_SUCCESS_ROUTING_KEY}
+          queue: ${DEMO_RABBITMQ_TEAM_SUCCESS_QUEUE}
+        topic_team_refund:
+          routing_key: ${DEMO_RABBITMQ_TEAM_REFUND_ROUTING_KEY}
+          queue: ${DEMO_RABBITMQ_TEAM_REFUND_QUEUE}
+
+mybatis:
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+  config-location: classpath:/mybatis/config/mybatis-config.xml
+
+redis:
+  sdk:
+    config:
+      host: ${DEMO_REDIS_HOST}
+      port: ${DEMO_REDIS_PORT:6379}
+      database: ${DEMO_REDIS_DATABASE:0}
+      pool-size: ${DEMO_REDIS_POOL_SIZE:10}
+      min-idle-size: ${DEMO_REDIS_MIN_IDLE_SIZE:2}
+      idle-timeout: ${DEMO_REDIS_IDLE_TIMEOUT:30000}
+      connect-timeout: ${DEMO_REDIS_CONNECT_TIMEOUT:5000}
+      retry-attempts: ${DEMO_REDIS_RETRY_ATTEMPTS:3}
+      retry-interval: ${DEMO_REDIS_RETRY_INTERVAL:1000}
+      ping-interval: ${DEMO_REDIS_PING_INTERVAL:60000}
+      keep-alive: true
+
+xfg:
+  wrench:
+    config:
+      system: ${DEMO_DCC_SYSTEM}
+      register:
+        host: ${DEMO_REDIS_HOST}
+        port: ${DEMO_REDIS_PORT:6379}
+
+agent:
+  facts:
+    dev-header-auth:
+      enabled: false
+  refund:
+    test-execution-delay-ms: 0
+
+group-buy-market:
+  jobs:
+    timeout-refund:
+      enabled: false
+    group-buy-notify:
+      enabled: false
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  endpoints:
+    web:
+      exposure:
+        include: health
+  health:
+    livenessstate:
+      enabled: true
+
+logging:
+  level:
+    root: ${DEMO_LOG_LEVEL:info}
+  config: classpath:logback-spring.xml

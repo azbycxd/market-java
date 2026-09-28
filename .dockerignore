@@ -1,0 +1,11 @@
+.git
+.idea
+.vscode
+**/target
+**/*.iml
+docs
+reports
+scripts
+deploy
+data
+*.log

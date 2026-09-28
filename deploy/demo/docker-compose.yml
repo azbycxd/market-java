@@ -1,0 +1,99 @@
+name: group-buy-market-demo
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DEMO_MYSQL_DATABASE:-group_buy_market_demo}
+      MYSQL_USER: ${DEMO_MYSQL_USERNAME:-group_buy_demo}
+      MYSQL_PASSWORD: ${DEMO_MYSQL_PASSWORD:?set DEMO_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DEMO_MYSQL_ROOT_PASSWORD:?set DEMO_MYSQL_ROOT_PASSWORD}
+      TZ: Asia/Shanghai
+    volumes:
+      - demo-mysql-data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks:
+      - demo-backend
+
+  redis:
+    image: redis:6.2
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - demo-backend
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${DEMO_RABBITMQ_USERNAME:-group_buy_demo}
+      RABBITMQ_DEFAULT_PASS: ${DEMO_RABBITMQ_PASSWORD:?set DEMO_RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${DEMO_RABBITMQ_VHOST:-group-buy-demo}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    networks:
+      - demo-backend
+
+  java:
+    image: group-buy-market-java:demo
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: demo
+      SERVER_PORT: 8091
+      DEMO_MYSQL_USERNAME: ${DEMO_MYSQL_USERNAME:-group_buy_demo}
+      DEMO_MYSQL_PASSWORD: ${DEMO_MYSQL_PASSWORD:?set DEMO_MYSQL_PASSWORD}
+      DEMO_MYSQL_URL: jdbc:mysql://mysql:3306/${DEMO_MYSQL_DATABASE:-group_buy_market_demo}?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&sessionVariables=sql_mode='NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES'
+      DEMO_RABBITMQ_HOST: rabbitmq
+      DEMO_RABBITMQ_PORT: 5672
+      DEMO_RABBITMQ_USERNAME: ${DEMO_RABBITMQ_USERNAME:-group_buy_demo}
+      DEMO_RABBITMQ_PASSWORD: ${DEMO_RABBITMQ_PASSWORD:?set DEMO_RABBITMQ_PASSWORD}
+      DEMO_RABBITMQ_VHOST: ${DEMO_RABBITMQ_VHOST:-group-buy-demo}
+      DEMO_RABBITMQ_EXCHANGE: ${DEMO_RABBITMQ_EXCHANGE:-demo_group_buy_market_exchange}
+      DEMO_RABBITMQ_TEAM_SUCCESS_ROUTING_KEY: ${DEMO_RABBITMQ_TEAM_SUCCESS_ROUTING_KEY:-demo.topic.team_success}
+      DEMO_RABBITMQ_TEAM_SUCCESS_QUEUE: ${DEMO_RABBITMQ_TEAM_SUCCESS_QUEUE:-demo_group_buy_market_queue_team_success}
+      DEMO_RABBITMQ_TEAM_REFUND_ROUTING_KEY: ${DEMO_RABBITMQ_TEAM_REFUND_ROUTING_KEY:-demo.topic.team_refund}
+      DEMO_RABBITMQ_TEAM_REFUND_QUEUE: ${DEMO_RABBITMQ_TEAM_REFUND_QUEUE:-demo_group_buy_market_queue_team_refund}
+      DEMO_REDIS_HOST: redis
+      DEMO_REDIS_PORT: 6379
+      DEMO_REDIS_DATABASE: 0
+      DEMO_DCC_SYSTEM: group-buy-market-demo
+      AGENT_INTERNAL_JWT_SECRET: ${AGENT_INTERNAL_JWT_SECRET:?set AGENT_INTERNAL_JWT_SECRET}
+      AGENT_INTERNAL_JWT_ISSUER: ${AGENT_INTERNAL_JWT_ISSUER:?set AGENT_INTERNAL_JWT_ISSUER}
+      AGENT_INTERNAL_JWT_AUDIENCE: ${AGENT_INTERNAL_JWT_AUDIENCE:?set AGENT_INTERNAL_JWT_AUDIENCE}
+    expose:
+      - "8091"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - demo-backend
+
+volumes:
+  demo-mysql-data:
+
+networks:
+  demo-backend:
+    driver: bridge
