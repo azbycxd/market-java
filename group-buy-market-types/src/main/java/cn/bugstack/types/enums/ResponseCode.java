@@ -22,6 +22,7 @@ public enum ResponseCode {
     ACTIVITY_NOT_FOUND("ACTIVITY_NOT_FOUND", "活动不存在"),
     INVALID_ARGUMENT("INVALID_ARGUMENT", "请求参数无效"),
     INTERNAL_SERVICE_ERROR("INTERNAL_SERVICE_ERROR", "内部服务异常"),
+    REFUND_RESULT_NOT_FOUND("NOT_FOUND", "退款结果不存在"),
 
     E0001("E0001", "不存在对应的折扣计算服务"),
     E0002("E0002", "无拼团营销配置"),

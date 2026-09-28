@@ -9,8 +9,8 @@
         <result column="result_json" property="resultJson"/><result column="created_at" property="createdAt"/><result column="updated_at" property="updatedAt"/>
     </resultMap>
     <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.AgentRefundRequest">
-        insert into agent_refund_request(idempotency_key,user_id,out_trade_no,expected_version,expected_refund_type,status,created_at,updated_at)
-        values(#{idempotencyKey},#{userId},#{outTradeNo},#{expectedVersion},#{expectedRefundType},#{status},now(),now())
+        insert into agent_refund_request(idempotency_key,user_id,out_trade_no,expected_version,expected_refund_type,status,result_code,result_json,created_at,updated_at)
+        values(#{idempotencyKey},#{userId},#{outTradeNo},#{expectedVersion},#{expectedRefundType},#{status},#{resultCode},#{resultJson},now(),now())
     </insert>
     <select id="queryByIdempotencyKey" resultMap="dataMap">
         select idempotency_key,user_id,out_trade_no,expected_version,expected_refund_type,status,result_code,result_json,created_at,updated_at

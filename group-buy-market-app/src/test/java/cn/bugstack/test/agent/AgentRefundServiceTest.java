@@ -128,6 +128,81 @@ public class AgentRefundServiceTest {
         assertFalse(result.getRefundExecuted());
     }
 
+    @Test
+    public void shouldQuerySucceededResultOwnedByCurrentUser() {
+        when(requestRepository.queryByIdempotencyKey("result-success")).thenReturn(
+                AgentRefundRequestEntity.builder().idempotencyKey("result-success").userId("user-a")
+                        .status("SUCCEEDED").resultCode("REFUND_SUCCEEDED").build());
+
+        AgentRefundResultVO result = service.queryResult("user-a", "result-success");
+
+        assertEquals("SUCCEEDED", result.getStatus());
+        assertEquals("REFUND_SUCCEEDED", result.getResultCode());
+        assertTrue(result.getRefundExecuted());
+        verify(requestRepository, never()).insertAbandoned(any());
+    }
+
+    @Test
+    public void shouldReserveMissingKeyAsAbandonedWithNoRefundParameters() {
+        when(requestRepository.queryByIdempotencyKey("result-missing")).thenReturn(null);
+
+        AgentRefundResultVO result = service.queryResult("user-a", "result-missing");
+
+        assertEquals("ABANDONED", result.getStatus());
+        assertEquals("NOT_RECEIVED_BEFORE_QUERY", result.getResultCode());
+        assertFalse(result.getRefundExecuted());
+        verify(requestRepository).insertAbandoned(argThat(request ->
+                "result-missing".equals(request.getIdempotencyKey())
+                        && "user-a".equals(request.getUserId())
+                        && "ABANDONED".equals(request.getStatus())
+                        && null == request.getOutTradeNo()
+                        && null == request.getExpectedVersion()
+                        && null == request.getExpectedRefundType()));
+    }
+
+    @Test
+    public void shouldHideAnotherUsersKeyWithoutInsertingAnything() {
+        when(requestRepository.queryByIdempotencyKey("foreign-key")).thenReturn(
+                AgentRefundRequestEntity.builder().idempotencyKey("foreign-key").userId("user-b")
+                        .status("SUCCEEDED").resultCode("REFUND_SUCCEEDED").build());
+
+        AgentRefundResultVO result = service.queryResult("user-a", "foreign-key");
+
+        assertNull(result.getStatus());
+        assertEquals("NOT_FOUND", result.getResultCode());
+        assertFalse(result.getRefundExecuted());
+        verify(requestRepository, never()).insertAbandoned(any());
+    }
+
+    @Test
+    public void shouldNeverExecuteRefundForCallerOwnedAbandonedKey() {
+        AgentRefundRequestEntity abandoned = AgentRefundRequestEntity.builder().idempotencyKey("abandoned-key")
+                .userId("user-a").status("ABANDONED").resultCode("NOT_RECEIVED_BEFORE_QUERY").build();
+        doThrow(new AgentRefundRequestDuplicateException()).when(requestRepository).insertProcessing(any());
+        when(requestRepository.queryByIdempotencyKey("abandoned-key")).thenReturn(abandoned);
+
+        AgentRefundResultVO result = service.refund("user-a", "trade-a", "abandoned-key", version, "UNPAID");
+
+        assertEquals("FAILED", result.getStatus());
+        assertEquals("ABANDONED", result.getResultCode());
+        assertFalse(result.getRefundExecuted());
+        verifyNoInteractions(previewService, refundOrderService);
+    }
+
+    @Test
+    public void shouldReturnRefundRecordWhenRefundWinsInsertRace() {
+        AgentRefundRequestEntity processing = AgentRefundRequestEntity.builder().idempotencyKey("race-key")
+                .userId("user-a").status("PROCESSING").build();
+        when(requestRepository.queryByIdempotencyKey("race-key")).thenReturn(null, processing);
+        doThrow(new AgentRefundRequestDuplicateException()).when(requestRepository).insertAbandoned(any());
+
+        AgentRefundResultVO result = service.queryResult("user-a", "race-key");
+
+        assertEquals("PROCESSING", result.getStatus());
+        assertNull(result.getResultCode());
+        assertFalse(result.getRefundExecuted());
+    }
+
     private TradeRefundBehaviorEntity success() {
         return TradeRefundBehaviorEntity.builder()
                 .tradeRefundBehaviorEnum(TradeRefundBehaviorEntity.TradeRefundBehaviorEnum.SUCCESS).build();

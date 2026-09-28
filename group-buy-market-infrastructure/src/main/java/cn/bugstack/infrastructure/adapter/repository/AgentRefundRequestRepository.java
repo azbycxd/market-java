@@ -16,10 +16,20 @@ public class AgentRefundRequestRepository implements IAgentRefundRequestReposito
 
     @Override
     public int insertProcessing(AgentRefundRequestEntity request) {
+        return insert(request);
+    }
+
+    @Override
+    public int insertAbandoned(AgentRefundRequestEntity request) {
+        return insert(request);
+    }
+
+    private int insert(AgentRefundRequestEntity request) {
         AgentRefundRequest po = new AgentRefundRequest();
         po.setIdempotencyKey(request.getIdempotencyKey()); po.setUserId(request.getUserId());
         po.setOutTradeNo(request.getOutTradeNo()); po.setExpectedVersion(request.getExpectedVersion());
         po.setExpectedRefundType(request.getExpectedRefundType()); po.setStatus(request.getStatus());
+        po.setResultCode(request.getResultCode()); po.setResultJson(request.getResultJson());
         try {
             return dao.insert(po);
         } catch (DuplicateKeyException duplicate) {

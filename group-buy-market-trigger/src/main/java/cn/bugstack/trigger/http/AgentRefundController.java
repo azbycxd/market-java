@@ -2,6 +2,8 @@ package cn.bugstack.trigger.http;
 
 import cn.bugstack.api.dto.AgentRefundRequestDTO;
 import cn.bugstack.api.dto.AgentRefundResponseDTO;
+import cn.bugstack.api.dto.AgentRefundResultRequestDTO;
+import cn.bugstack.api.dto.AgentRefundResultResponseDTO;
 import cn.bugstack.api.response.Response;
 import cn.bugstack.domain.trade.model.valobj.AgentRefundResultVO;
 import cn.bugstack.domain.trade.service.IAgentRefundService;
@@ -48,7 +50,39 @@ public class AgentRefundController {
                         .refundExecuted(result.getRefundExecuted()).idempotentReplay(result.getIdempotentReplay()).build()).build();
     }
 
+    @PostMapping("/refund/result")
+    public Response<AgentRefundResultResponseDTO> result(@RequestBody(required = false) AgentRefundResultRequestDTO request) {
+        if (null == request || StringUtils.isBlank(request.getIdempotencyKey())) {
+            return resultError(ResponseCode.INVALID_ARGUMENT);
+        }
+        Optional<String> user = authenticatedUserProvider.getAuthenticatedUserId();
+        if (!user.isPresent()) {
+            return resultError(ResponseCode.AUTH_REQUIRED);
+        }
+        AgentRefundResultVO result;
+        try {
+            result = agentRefundService.queryResult(user.get(), request.getIdempotencyKey());
+        } catch (Exception ignored) {
+            return resultError(ResponseCode.INTERNAL_SERVICE_ERROR);
+        }
+        if ("NOT_FOUND".equals(result.getResultCode())) {
+            return resultError(ResponseCode.REFUND_RESULT_NOT_FOUND);
+        }
+        return Response.<AgentRefundResultResponseDTO>builder()
+                .code(ResponseCode.SUCCESS.getCode())
+                .info(ResponseCode.SUCCESS.getInfo())
+                .data(AgentRefundResultResponseDTO.builder()
+                        .status(result.getStatus())
+                        .resultCode(result.getResultCode())
+                        .refundExecuted(result.getRefundExecuted())
+                        .build())
+                .build();
+    }
+
     @ExceptionHandler({HttpMessageNotReadableException.class, IllegalArgumentException.class})
     public Response<AgentRefundResponseDTO> invalid(Exception ignored) { return error(ResponseCode.INVALID_ARGUMENT.getCode(), ResponseCode.INVALID_ARGUMENT.getInfo()); }
     private Response<AgentRefundResponseDTO> error(String code, String info) { return Response.<AgentRefundResponseDTO>builder().code(code).info(info).build(); }
+    private Response<AgentRefundResultResponseDTO> resultError(ResponseCode code) {
+        return Response.<AgentRefundResultResponseDTO>builder().code(code.getCode()).info(code.getInfo()).build();
+    }
 }

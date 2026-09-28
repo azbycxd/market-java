@@ -31,6 +31,9 @@ public class AgentRefundService implements IAgentRefundService {
     private static final String PROCESSING = "PROCESSING";
     private static final String SUCCEEDED = "SUCCEEDED";
     private static final String FAILED = "FAILED";
+    private static final String ABANDONED = "ABANDONED";
+    private static final String NOT_FOUND = "NOT_FOUND";
+    private static final String NOT_RECEIVED_BEFORE_QUERY = "NOT_RECEIVED_BEFORE_QUERY";
 
     private final IAgentRefundRequestRepository requestRepository;
     private final IRefundPreviewService refundPreviewService;
@@ -98,6 +101,29 @@ public class AgentRefundService implements IAgentRefundService {
         }
     }
 
+    @Override
+    public AgentRefundResultVO queryResult(String authenticatedUserId, String idempotencyKey) {
+        AgentRefundRequestEntity stored = requestRepository.queryByIdempotencyKey(idempotencyKey);
+        if (null != stored) {
+            return visibleResult(authenticatedUserId, stored);
+        }
+
+        AgentRefundRequestEntity abandoned = AgentRefundRequestEntity.builder()
+                .idempotencyKey(idempotencyKey)
+                .userId(authenticatedUserId)
+                .status(ABANDONED)
+                .resultCode(NOT_RECEIVED_BEFORE_QUERY)
+                .resultJson("{\"status\":\"ABANDONED\",\"resultCode\":\"NOT_RECEIVED_BEFORE_QUERY\"}")
+                .build();
+        try {
+            requestRepository.insertAbandoned(abandoned);
+            return result(ABANDONED, NOT_RECEIVED_BEFORE_QUERY, false, false);
+        } catch (AgentRefundRequestDuplicateException duplicate) {
+            // /refund may have won the unique-key race after our first read.
+            return visibleResult(authenticatedUserId, requestRepository.queryByIdempotencyKey(idempotencyKey));
+        }
+    }
+
     private void delayAfterValidatedPreviewForAgentDev(String idempotencyKey, String outTradeNo)
             throws InterruptedException {
         if (testExecutionDelayMs <= 0) {
@@ -116,13 +142,28 @@ public class AgentRefundService implements IAgentRefundService {
 
     private AgentRefundResultVO replayOrReject(AgentRefundRequestEntity incoming) {
         AgentRefundRequestEntity stored = requestRepository.queryByIdempotencyKey(incoming.getIdempotencyKey());
-        if (null == stored || !sameRequest(stored, incoming)) {
+        if (null == stored || !equals(stored.getUserId(), incoming.getUserId())) {
+            return result(FAILED, "IDEMPOTENCY_KEY_REUSED", false, false);
+        }
+        // ABANDONED is a terminal reservation owned by this user. It wins before comparing
+        // fields that are intentionally null on an ABANDONED row.
+        if (ABANDONED.equals(stored.getStatus())) {
+            return result(FAILED, ABANDONED, false, true);
+        }
+        if (!sameRequest(stored, incoming)) {
             return result(FAILED, "IDEMPOTENCY_KEY_REUSED", false, false);
         }
         if (PROCESSING.equals(stored.getStatus())) {
             return result(PROCESSING, "REFUND_PROCESSING", false, true);
         }
         return result(stored.getStatus(), stored.getResultCode(), SUCCEEDED.equals(stored.getStatus()), true);
+    }
+
+    private AgentRefundResultVO visibleResult(String authenticatedUserId, AgentRefundRequestEntity stored) {
+        if (null == stored || !equals(authenticatedUserId, stored.getUserId())) {
+            return result(null, NOT_FOUND, false, false);
+        }
+        return result(stored.getStatus(), stored.getResultCode(), SUCCEEDED.equals(stored.getStatus()), false);
     }
 
     private boolean sameRequest(AgentRefundRequestEntity left, AgentRefundRequestEntity right) {
